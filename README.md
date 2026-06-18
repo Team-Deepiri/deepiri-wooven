@@ -12,22 +12,54 @@ Licensed under **Apache-2.0** (see `LICENSE` and `NOTICE`).
 
 ## Install
 
-From a clone of this repository:
+One-line install (recommended):
+
+```bash
+git clone https://github.com/Team-Deepiri/deepiri-git-handshake.git
+cd deepiri-git-handshake
+./install.sh
+source ~/.config/deepiri-git-handshake/path.sh
+```
+
+`./install.sh` creates a venv, installs the package, registers `git-credential-dgh`, installs a **git shim** on `~/.local/bin/git` (prepended via `path.sh`) that intercepts `git clone` and auto-picks **SSH or HTTPS**, and enables a **background service**:
+
+| Platform | Service |
+|----------|---------|
+| Linux | systemd user unit `deepiri-git-handshake.service` |
+| WSL | same systemd user unit |
+| macOS | launchd agent `com.deepiri.git-handshake` |
+| Windows | Scheduled task `DeepiriGitHandshake` at logon |
+
+When you clone, transport is chosen from your saved profile, **last-used transport** for that host, or a **one-time prompt** if both SSH and HTTPS look available. Plain `git clone owner/repo` defaults to `github.com`.
+
+Manual install:
 
 ```bash
 cd deepiri-git-handshake
 python3 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -e .
+git-handshake service install
 ```
 
 Entry points:
 
 | Command | Purpose |
 |--------|---------|
-| `dgh` | Launch the Textual TUI (same as `deepiri-git-handshake`) |
+| `git-handshake` | TUI + `cred` + `service` subcommands |
+| `dgh` | Same as `git-handshake` |
 | `deepiri-git-handshake` | Same as `dgh` |
+| `git-handshake-git` | Git shim (normally via `~/.local/bin/git`) |
 | `git-credential-dgh` | Git credential helper (normally invoked by git, not by hand) |
+
+Service management:
+
+```bash
+git-handshake service status
+git-handshake service start
+git-handshake service stop
+git-handshake service uninstall
+```
 
 Check the version:
 

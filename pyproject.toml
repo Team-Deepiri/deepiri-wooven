@@ -17,8 +17,11 @@ dev = ["pytest>=7.0"]
 
 [project.scripts]
 deepiri-git-handshake = "deepiri_git_handshake.cli:main"
+git-handshake = "deepiri_git_handshake.cli:main"
 dgh = "deepiri_git_handshake.cli:main"
+git-handshake-git = "deepiri_git_handshake.git_wrapper:main"
 git-credential-dgh = "deepiri_git_handshake.forge_credential_helper:main"
+deepiri-git-handshake-daemon = "deepiri_git_handshake.daemon:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
