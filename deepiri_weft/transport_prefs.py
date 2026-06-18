@@ -8,7 +8,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from deepiri_git_handshake import cred_manager as cm
+from deepiri_weft import cred_manager as cm
 
 
 def _prefs_path() -> Path:
@@ -62,9 +62,9 @@ def record_transport(host: str, transport: str) -> None:
 def socket_path() -> Path:
     runtime = os.environ.get("XDG_RUNTIME_DIR")
     if runtime:
-        d = Path(runtime) / "deepiri-git-handshake"
+        d = Path(runtime) / "deepiri-weft"
     else:
-        d = Path.home() / ".local" / "share" / "deepiri-git-handshake"
+        d = Path.home() / ".local" / "share" / "deepiri-weft"
     d.mkdir(parents=True, exist_ok=True)
     return d / "daemon.sock"
 

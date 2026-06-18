@@ -1,6 +1,6 @@
 """Tests for clone URL parsing."""
 
-from deepiri_git_handshake.clone_parser import parse_clone_arg
+from deepiri_weft.clone_parser import parse_clone_arg
 
 
 def test_parse_ssh_scp():

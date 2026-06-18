@@ -8,14 +8,14 @@ import shutil
 import subprocess
 import sys
 
-from deepiri_git_handshake.clone_parser import parse_clone_arg
-from deepiri_git_handshake.clone_resolver import resolve_clone_url
-from deepiri_git_handshake.daemon import daemon_request
-from deepiri_git_handshake.transport_prefs import install_state_path
+from deepiri_weft.clone_parser import parse_clone_arg
+from deepiri_weft.clone_resolver import resolve_clone_url
+from deepiri_weft.daemon import daemon_request
+from deepiri_weft.transport_prefs import install_state_path
 
 
 def _real_git() -> str:
-    env_path = os.environ.get("DGH_REAL_GIT", "").strip()
+    env_path = os.environ.get("WEFT_REAL_GIT", "").strip()
     if env_path and os.path.isfile(env_path) and os.access(env_path, os.X_OK):
         return env_path
     state = install_state_path()
@@ -30,7 +30,7 @@ def _real_git() -> str:
     found = shutil.which("git")
     if found:
         return found
-    raise SystemExit("git-handshake: real git binary not found")
+    raise SystemExit("deepiri-weft: real git binary not found")
 
 
 def _resolve_via_daemon(source: str, *, interactive: bool) -> tuple[str, str] | None:
@@ -77,7 +77,7 @@ def _maybe_rewrite_clone(argv: list[str]) -> list[str]:
 
     if url != source:
         print(
-            f"git-handshake: using {transport.upper()} → {url}",
+            f"deepiri-weft: using {transport.upper()} → {url}",
             file=sys.stderr,
         )
     new_argv = list(argv)

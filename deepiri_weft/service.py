@@ -1,4 +1,4 @@
-"""Install and manage the git-handshake background service."""
+"""Install and manage the deepiri-weft background service."""
 
 from __future__ import annotations
 
@@ -10,13 +10,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from deepiri_git_handshake import cred_manager as cm
-from deepiri_git_handshake.daemon import daemon_running, pid_path, run_daemon, socket_path
-from deepiri_git_handshake.transport_prefs import install_state_path
+from deepiri_weft import cred_manager as cm
+from deepiri_weft.daemon import daemon_running, pid_path, run_daemon, socket_path
+from deepiri_weft.transport_prefs import install_state_path
 
-PACKAGE_NAME = "deepiri-git-handshake"
-SERVICE_LABEL = "com.deepiri.git-handshake"
-SYSTEMD_UNIT = "deepiri-git-handshake.service"
+PACKAGE_NAME = "deepiri-weft"
+SERVICE_LABEL = "com.deepiri.weft"
+SYSTEMD_UNIT = "deepiri-weft.service"
 
 
 def _repo_root() -> Path:
@@ -59,20 +59,20 @@ def _python_exe() -> str:
     return sys.executable
 
 
-def _git_handshake_exe() -> str:
-    found = shutil.which("git-handshake")
+def _weft_exe() -> str:
+    found = shutil.which("deepiri-weft")
     if found:
         return found
-    return str(_local_bin() / "git-handshake")
+    return str(_local_bin() / "deepiri-weft")
 
 
 def _daemon_cmd() -> list[str]:
-    return [_python_exe(), "-m", "deepiri_git_handshake.daemon", "--foreground"]
+    return [_python_exe(), "-m", "deepiri_weft.daemon", "--foreground"]
 
 
 def _find_real_git(exclude: Path | None = None) -> str | None:
     path_entries = os.environ.get("PATH", "").split(os.pathsep)
-    shim_names = {"git-handshake-git", "git"}
+    shim_names = {"deepiri-weft-git", "git"}
     for entry in path_entries:
         if not entry:
             continue
@@ -80,7 +80,7 @@ def _find_real_git(exclude: Path | None = None) -> str | None:
         if exclude and candidate.resolve() == exclude.resolve():
             continue
         if candidate.is_file() and os.access(candidate, os.X_OK):
-            if candidate.name in shim_names and "deepiri-git-handshake" in str(candidate):
+            if candidate.name in shim_names and "deepiri-weft" in str(candidate):
                 continue
             return str(candidate)
     return shutil.which("git")
@@ -107,15 +107,15 @@ def install_git_shim() -> tuple[bool, str]:
     if not real_git:
         return False, "Could not locate real git binary."
 
-    wrapper = shutil.which("git-handshake-git")
+    wrapper = shutil.which("deepiri-weft-git")
     if not wrapper:
-        wrapper = str(bin_dir / "git-handshake-git")
+        wrapper = str(bin_dir / "deepiri-weft-git")
     if not Path(wrapper).is_file():
-        return False, "git-handshake-git not on PATH; run pip install first."
+        return False, "deepiri-weft-git not on PATH; run pip install first."
 
     script = f"""#!/usr/bin/env bash
-# Deepiri Git Handshake git shim — prepended to PATH by install.sh
-export DGH_REAL_GIT={json.dumps(real_git)}
+# Deepiri Weft git shim — prepended to PATH by install.sh
+export WEFT_REAL_GIT={json.dumps(real_git)}
 exec {json.dumps(wrapper)} "$@"
 """
     shim_target.write_text(script, encoding="utf-8")
@@ -305,7 +305,7 @@ def run_install(*, skip_service: bool = False) -> int:
     local_bin = _local_bin()
     path_hint = f'export PATH="{local_bin}:$PATH"'
     msgs.append(f"Add to your shell profile if needed: {path_hint}")
-    msgs.append(f"Commands: git-handshake, dgh, git clone (via shim)")
+    msgs.append(f"Commands: deepiri-weft, weft, git clone (via shim)")
     for line in msgs:
         print(line)
     return 0

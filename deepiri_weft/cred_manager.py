@@ -10,14 +10,14 @@ from typing import Any
 
 import keyring
 
-APP_KEYRING = "deepiri-git-handshake"
+APP_KEYRING = "deepiri-weft"
 PAT_SERVICE = "https-pat"
-HELPER_NAME = "dgh"
+HELPER_NAME = "weft"
 
 
 def config_dir() -> Path:
     base = os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))
-    d = Path(base) / "deepiri-git-handshake"
+    d = Path(base) / "deepiri-weft"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -142,7 +142,7 @@ def register_git_credential_helper() -> tuple[bool, str]:
     )
     if r.returncode != 0:
         return False, (r.stderr or r.stdout or "git config failed").strip()
-    return True, f"Added credential.helper={HELPER_NAME} (runs git-credential-dgh from PATH)."
+    return True, f"Added credential.helper={HELPER_NAME} (runs git-credential-weft from PATH)."
 
 
 def unregister_git_credential_helper() -> tuple[bool, str]:
@@ -167,7 +167,7 @@ def unregister_git_credential_helper() -> tuple[bool, str]:
             text=True,
             timeout=10,
         )
-    return True, f"Removed credential.helper entries and re-registered {len(rest)} helper(s) (dgh dropped)."
+    return True, f"Removed credential.helper entries and re-registered {len(rest)} helper(s) (weft dropped)."
 
 
 def pat_status_line(host: str) -> str:

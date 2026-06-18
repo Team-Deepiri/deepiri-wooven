@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import deepiri_git_handshake.cred_manager as cm
+import deepiri_weft.cred_manager as cm
 
 
 def test_profiles_roundtrip(tmp_path: Path, monkeypatch: object) -> None:
@@ -20,4 +20,4 @@ def test_profiles_roundtrip(tmp_path: Path, monkeypatch: object) -> None:
     assert cm.get_pat("github.com") is None
     p = Path(cm.profiles_path())
     assert p.is_file()
-    assert p.parent.name == "deepiri-git-handshake"
+    assert p.parent.name == "deepiri-weft"

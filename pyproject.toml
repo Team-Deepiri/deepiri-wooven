@@ -1,7 +1,7 @@
 [project]
-name = "deepiri-git-handshake"
-version = "0.2.0"
-description = "TUI + CLI credential vault: SSH/HTTPS profiles, OS keyring PAT, git-credential-dgh, clone by owner/repo"
+name = "deepiri-weft"
+version = "0.3.0"
+description = "TUI + CLI credential vault: SSH/HTTPS profiles, OS keyring PAT, git-credential-weft, clone by owner/repo"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{name = "Team-Deepiri"}]
@@ -16,16 +16,15 @@ dependencies = [
 dev = ["pytest>=7.0"]
 
 [project.scripts]
-deepiri-git-handshake = "deepiri_git_handshake.cli:main"
-git-handshake = "deepiri_git_handshake.cli:main"
-dgh = "deepiri_git_handshake.cli:main"
-git-handshake-git = "deepiri_git_handshake.git_wrapper:main"
-git-credential-dgh = "deepiri_git_handshake.forge_credential_helper:main"
-deepiri-git-handshake-daemon = "deepiri_git_handshake.daemon:main"
+deepiri-weft = "deepiri_weft.cli:main"
+weft = "deepiri_weft.cli:main"
+deepiri-weft-git = "deepiri_weft.git_wrapper:main"
+git-credential-weft = "deepiri_weft.forge_credential_helper:main"
+deepiri-weft-daemon = "deepiri_weft.daemon:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["deepiri_git_handshake*"]
+include = ["deepiri_weft*"]
 
 [build-system]
 requires = ["setuptools>=65.0", "wheel"]

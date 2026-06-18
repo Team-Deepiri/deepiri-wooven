@@ -4,8 +4,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$TaskName = "DeepiriGitHandshake"
-$Action = New-ScheduledTaskAction -Execute $Python -Argument "-m deepiri_git_handshake.daemon --foreground"
+$TaskName = "DeepiriWeft"
+$Action = New-ScheduledTaskAction -Execute $Python -Argument "-m deepiri_weft.daemon --foreground"
 $Trigger = New-ScheduledTaskTrigger -AtLogOn
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
 $Principal = New-ScheduledTaskPrincipal -UserId $env:USERNAME -LogonType Interactive -RunLevel Limited

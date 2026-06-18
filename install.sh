@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install Deepiri Git Handshake as a user-level library with git clone interception.
+# Install Deepiri Weft as a user-level library with git clone interception.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
@@ -38,7 +38,7 @@ while [[ $# -gt 0 ]]; do
       cat <<'EOF'
 Usage: ./install.sh [options]
 
-Installs deepiri-git-handshake, registers git-credential-dgh, installs a git
+Installs deepiri-weft, registers git-credential-weft, installs a git
 shim for clone transport auto-switching, and enables the platform background
 service (systemd on Linux/WSL, launchd on macOS, Task Scheduler on Windows).
 
@@ -78,7 +78,7 @@ LOCAL_BIN="${HOME}/.local/bin"
 mkdir -p "$LOCAL_BIN"
 
 if [[ "$USE_VENV" -eq 1 ]]; then
-  for cmd in git-handshake dgh git-handshake-git git-credential-dgh deepiri-git-handshake-daemon; do
+  for cmd in deepiri-weft weft deepiri-weft-git git-credential-weft deepiri-weft-daemon; do
     if [[ -x "$VENV/bin/$cmd" ]]; then
       ln -sf "$VENV/bin/$cmd" "$LOCAL_BIN/$cmd"
     fi
@@ -91,23 +91,23 @@ else
   esac
 fi
 
-if ! command -v git-handshake >/dev/null 2>&1; then
-  warn "git-handshake not found on PATH; add ${LOCAL_BIN} to your shell profile."
+if ! command -v deepiri-weft >/dev/null 2>&1; then
+  warn "deepiri-weft not found on PATH; add ${LOCAL_BIN} to your shell profile."
 fi
 
-log "Running git-handshake service install"
-if command -v git-handshake >/dev/null 2>&1; then
-  git-handshake service install
+log "Running deepiri-weft service install"
+if command -v deepiri-weft >/dev/null 2>&1; then
+  deepiri-weft service install
 else
-  "$PY" -c "from deepiri_git_handshake.service import run_install; raise SystemExit(run_install())"
+  "$PY" -c "from deepiri_weft.service import run_install; raise SystemExit(run_install())"
 fi
 
-PROFILE_SNIPPET="${HOME}/.config/deepiri-git-handshake/path.sh"
+PROFILE_SNIPPET="${HOME}/.config/deepiri-weft/path.sh"
 mkdir -p "$(dirname "$PROFILE_SNIPPET")"
 cat >"$PROFILE_SNIPPET" <<EOF
-# Added by deepiri-git-handshake install.sh
+# Added by deepiri-weft install.sh
 export PATH="${LOCAL_BIN}:\${PATH}"
 EOF
 
 log "Installed. Ensure your shell loads: source ${PROFILE_SNIPPET}"
-log "Verify: git-handshake --version && git-handshake service status"
+log "Verify: deepiri-weft --version && deepiri-weft service status"

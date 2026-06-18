@@ -1,6 +1,6 @@
 """Tests for transport preference storage."""
 
-from deepiri_git_handshake.transport_prefs import get_last_transport, record_transport
+from deepiri_weft.transport_prefs import get_last_transport, record_transport
 
 
 def test_record_and_read_last_transport(tmp_path, monkeypatch):

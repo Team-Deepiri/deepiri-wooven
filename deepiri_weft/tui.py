@@ -1,4 +1,4 @@
-"""Textual TUI for Deepiri Git Handshake."""
+"""Textual TUI for Deepiri Weft."""
 
 from __future__ import annotations
 
@@ -21,10 +21,10 @@ from textual.widgets import (
     TabPane,
 )
 
-from deepiri_git_handshake import cred_manager as cm
-from deepiri_git_handshake.credentials import manager_summary, setup_for_transport
-from deepiri_git_handshake.ssh_config import apply_identity_block
-from deepiri_git_handshake.transport import clone_url, detect_transport
+from deepiri_weft import cred_manager as cm
+from deepiri_weft.credentials import manager_summary, setup_for_transport
+from deepiri_weft.ssh_config import apply_identity_block
+from deepiri_weft.transport import clone_url, detect_transport
 
 
 def _normalize_target(raw: str) -> str:
@@ -34,7 +34,7 @@ def _normalize_target(raw: str) -> str:
     return str(Path(s).expanduser())
 
 
-class GitHandshakeApp(App[None]):
+class WeftApp(App[None]):
     CSS = """
     Screen { align: center middle; }
     TabbedContent { width: 92; max-width: 100%; height: auto; min-height: 28; }
@@ -108,7 +108,7 @@ class GitHandshakeApp(App[None]):
                         yield Label("HTTPS PAT (stored in OS keyring; not echoed)")
                         yield Input(placeholder="paste token, then Store PAT", id="vault_pat", password=True)
                     yield Static(
-                        "Register `git-credential-dgh` so git can read PATs from the keyring for HTTPS.",
+                        "Register `git-credential-weft` so git can read PATs from the keyring for HTTPS.",
                         id="hint-vault",
                     )
                     yield RichLog(id="log-vault", highlight=True, markup=True)
@@ -231,7 +231,7 @@ class GitHandshakeApp(App[None]):
     def _post_success_tips(self, log: RichLog, transport: str) -> None:
         if transport == "https":
             log.write(
-                "[dim]HTTPS: register git-credential-dgh in Vault, or use `gh auth setup-git`.[/]"
+                "[dim]HTTPS: register git-credential-weft in Vault, or use `gh auth setup-git`.[/]"
             )
         else:
             log.write(

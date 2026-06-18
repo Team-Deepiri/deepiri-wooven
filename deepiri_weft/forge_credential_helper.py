@@ -1,10 +1,10 @@
-"""Git credential helper: git-credential-dgh — reads HTTPS PAT from OS keyring."""
+"""Git credential helper: git-credential-weft — reads HTTPS PAT from OS keyring."""
 
 from __future__ import annotations
 
 import sys
 
-from deepiri_git_handshake.cred_manager import get_pat, https_username_for
+from deepiri_weft.cred_manager import get_pat, https_username_for
 
 
 def _read_credential_input() -> dict[str, str]:
@@ -43,7 +43,7 @@ def run_git_credential(op: str) -> int:
         password = data.get("password", "").strip()
         username = data.get("username", "").strip()
         if password and host:
-            from deepiri_git_handshake.cred_manager import store_pat, upsert_profile
+            from deepiri_weft.cred_manager import store_pat, upsert_profile
 
             store_pat(host, password)
             if username and username != "git":
@@ -51,7 +51,7 @@ def run_git_credential(op: str) -> int:
         return 0
 
     if op == "erase":
-        from deepiri_git_handshake.cred_manager import clear_pat
+        from deepiri_weft.cred_manager import clear_pat
 
         clear_pat(host)
         return 0

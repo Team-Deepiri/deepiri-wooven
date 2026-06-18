@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from deepiri_git_handshake import cred_manager as cm
+from deepiri_weft import cred_manager as cm
 
 
 def _run(cmd: list[str], timeout: float = 120.0) -> subprocess.CompletedProcess:
@@ -107,11 +107,11 @@ def setup_https_git(host: str = "github.com") -> list[str]:
     report: list[str] = []
     host = host.strip().lower()
     if cm.git_helper_registered():
-        report.append("git credential helper 'dgh' is enabled — HTTPS PATs load from the OS keyring.")
+        report.append("git credential helper 'weft' is enabled — HTTPS PATs load from the OS keyring.")
     if cm.get_pat(host):
         report.append(f"PAT for {host}: stored ({cm.pat_status_line(host)}).")
     else:
-        report.append(f"No PAT in keyring for {host} yet — use the Vault tab or `dgh cred pat --host`.")
+        report.append(f"No PAT in keyring for {host} yet — use the Vault tab or `weft cred pat --host`.")
 
     if shutil.which("gh"):
         st = _run(["gh", "auth", "status"], timeout=30)
@@ -155,6 +155,6 @@ def manager_summary(host: str) -> list[str]:
         f"[vault] {host}",
         f"  profile: {cm.get_profile(host) or '(none)'}",
         f"  PAT: {cm.pat_status_line(host)}",
-        f"  git helper 'dgh': {'yes' if cm.git_helper_registered() else 'no'}",
+        f"  git helper 'weft': {'yes' if cm.git_helper_registered() else 'no'}",
     ]
     return lines

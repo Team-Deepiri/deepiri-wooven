@@ -1,4 +1,4 @@
-# CodeQL Setup for deepiri-git-handshake
+# CodeQL Setup for deepiri-weft
 
 This folder contains the CodeQL configuration for security scanning in this repository.
 

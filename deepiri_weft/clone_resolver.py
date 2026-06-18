@@ -5,10 +5,10 @@ from __future__ import annotations
 import shutil
 import sys
 
-from deepiri_git_handshake import cred_manager as cm
-from deepiri_git_handshake.clone_parser import CloneTarget, parse_clone_arg
-from deepiri_git_handshake.transport import clone_url, detect_transport
-from deepiri_git_handshake.transport_prefs import get_last_transport, record_transport
+from deepiri_weft import cred_manager as cm
+from deepiri_weft.clone_parser import CloneTarget, parse_clone_arg
+from deepiri_weft.transport import clone_url, detect_transport
+from deepiri_weft.transport_prefs import get_last_transport, record_transport
 
 
 def _ssh_available(host: str) -> bool:
@@ -34,7 +34,7 @@ def _https_available(host: str) -> bool:
 
 def _prompt_transport(host: str, ssh_ok: bool, https_ok: bool) -> str:
     if sys.stdin.isatty() and sys.stdout.isatty():
-        print(f"\nDeepiri Git Handshake: choose transport for {host}", file=sys.stderr)
+        print(f"\nDeepiri Weft: choose transport for {host}", file=sys.stderr)
         if ssh_ok:
             print("  [1] SSH", file=sys.stderr)
         if https_ok:

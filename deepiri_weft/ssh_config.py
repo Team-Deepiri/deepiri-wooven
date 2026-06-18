@@ -8,8 +8,8 @@ from pathlib import Path
 def _markers(host: str) -> tuple[str, str]:
     h = host.strip().lower()
     return (
-        f"# --- deepiri-git-handshake begin {h} ---\n",
-        f"# --- deepiri-git-handshake end {h} ---\n",
+        f"# --- deepiri-weft begin {h} ---\n",
+        f"# --- deepiri-weft end {h} ---\n",
     )
 
 

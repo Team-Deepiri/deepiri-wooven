@@ -1,10 +1,10 @@
 [Unit]
-Description=Deepiri Git Handshake clone transport daemon
+Description=Deepiri Weft clone transport daemon
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=@PYTHON@ -m deepiri_git_handshake.daemon --foreground
+ExecStart=@PYTHON@ -m deepiri_weft.daemon --foreground
 Restart=on-failure
 RestartSec=3
 Environment=PYTHONUNBUFFERED=1

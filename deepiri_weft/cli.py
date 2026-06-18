@@ -1,21 +1,21 @@
-"""CLI entry for Deepiri Git Handshake."""
+"""CLI entry for Deepiri Weft."""
 
 from __future__ import annotations
 
 import argparse
 import sys
 
-from deepiri_git_handshake import __version__
-from deepiri_git_handshake import cred_manager as cm
-from deepiri_git_handshake import service as svc
-from deepiri_git_handshake.credentials import manager_summary, setup_for_transport
-from deepiri_git_handshake.ssh_config import apply_identity_block
+from deepiri_weft import __version__
+from deepiri_weft import cred_manager as cm
+from deepiri_weft import service as svc
+from deepiri_weft.credentials import manager_summary, setup_for_transport
+from deepiri_weft.ssh_config import apply_identity_block
 
 
 def _cmd_cred_list(_: argparse.Namespace) -> int:
     profiles = cm.load_profiles()
     if not profiles and not cm.list_registered_helpers():
-        print("(no profiles; git credential.helper not using dgh)")
+        print("(no profiles; git credential.helper not using weft)")
         return 0
     for host in sorted(profiles):
         meta = profiles[host]
@@ -111,7 +111,7 @@ def _cmd_service_uninstall(_: argparse.Namespace) -> int:
 
 def _build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
-        description="Deepiri Git Handshake — TUI clone + credential vault (dgh).",
+        description="Deepiri Weft — TUI clone + credential vault (weft).",
     )
     p.add_argument("--version", action="store_true", help="Print version and exit")
     sub = p.add_subparsers(dest="command")
@@ -157,7 +157,7 @@ def _build_parser() -> argparse.ArgumentParser:
     g.add_argument("--clear", action="store_true")
     c_pat.set_defaults(func=_cmd_cred_pat)
 
-    c_helper = csub.add_parser("helper", help="Register or unregister git-credential-dgh")
+    c_helper = csub.add_parser("helper", help="Register or unregister git-credential-weft")
     c_helper.add_argument("--unregister", action="store_true")
     c_helper.set_defaults(func=_cmd_cred_helper)
 
@@ -213,9 +213,9 @@ def main() -> None:
         raise SystemExit(args.func(args))
     if args.command == "service":
         raise SystemExit(args.func(args))
-    from deepiri_git_handshake.tui import GitHandshakeApp
+    from deepiri_weft.tui import WeftApp
 
-    GitHandshakeApp().run()
+    WeftApp().run()
 
 
 if __name__ == "__main__":

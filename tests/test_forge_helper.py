@@ -6,11 +6,11 @@ import io
 import sys
 from unittest.mock import patch
 
-from deepiri_git_handshake.forge_credential_helper import run_git_credential
+from deepiri_weft.forge_credential_helper import run_git_credential
 
 
 def test_get_emits_pat(monkeypatch: object) -> None:
-    from deepiri_git_handshake import cred_manager as cm
+    from deepiri_weft import cred_manager as cm
 
     cm.store_pat("github.com", "tok")
     cm.upsert_profile("github.com", https_username="u")
