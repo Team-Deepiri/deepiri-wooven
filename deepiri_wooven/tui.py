@@ -168,19 +168,13 @@ class WoovenApp(App[None]):
             return pref
         return detect_transport(host)
 
-    @on(Button.Pressed, "#link_btn")
-    def fill_from_link(self) -> None:
-        log = self.query_one("#log-clone", RichLog)
-        raw = self.query_one("#link", Input).value.strip()
-        if not raw:
-            log.write("[red]Paste a GitHub link first.[/]")
-            self.bell()
-            return
+    def _apply_link(self, raw: str, log: RichLog) -> bool:
+        """Parse a pasted link and fill host/owner/repo/transport. Returns success."""
         target = parse_clone_arg(raw)
         if target is None:
             log.write(f"[red]Could not parse[/] {raw!r} as a git clone source.")
             self.bell()
-            return
+            return False
         self.query_one("#host", Input).value = target.host
         self.query_one("#owner", Input).value = target.owner
         self.query_one("#repo", Input).value = target.repo
@@ -193,6 +187,17 @@ class WoovenApp(App[None]):
             f"[green]Parsed[/] {target.host}/{target.owner}/{target.repo} "
             f"[dim](transport: {target.transport or 'auto'})[/]"
         )
+        return True
+
+    @on(Button.Pressed, "#link_btn")
+    def fill_from_link(self) -> None:
+        log = self.query_one("#log-clone", RichLog)
+        raw = self.query_one("#link", Input).value.strip()
+        if not raw:
+            log.write("[red]Paste a GitHub link first.[/]")
+            self.bell()
+            return
+        self._apply_link(raw, log)
 
     @on(Button.Pressed, "#detect_btn")
     def detect_now(self) -> None:
@@ -218,13 +223,21 @@ class WoovenApp(App[None]):
     @on(Button.Pressed, "#clone_btn")
     def run_clone(self) -> None:
         log = self.query_one("#log-clone", RichLog)
-        host = self._host_clone()
         owner = self.query_one("#owner", Input).value.strip()
         repo = self.query_one("#repo", Input).value.strip()
+        link = self.query_one("#link", Input).value.strip()
+
+        if (not owner or not repo) and link:
+            if not self._apply_link(link, log):
+                return
+            owner = self.query_one("#owner", Input).value.strip()
+            repo = self.query_one("#repo", Input).value.strip()
+
+        host = self._host_clone()
         target = _normalize_target(self.query_one("#target", Input).value)
 
         if not owner or not repo:
-            log.write("[red]Owner and repository name are required.[/]")
+            log.write("[red]Owner and repository name are required (paste a link, or fill Owner/Repository).[/]")
             self.bell()
             return
 
