@@ -43,14 +43,22 @@ def _normalize_target(raw: str) -> str:
 class WoovenApp(App[None]):
     CSS = """
     Screen { align: center middle; }
-    TabbedContent { width: 92; max-width: 100%; height: auto; min-height: 28; }
+    TabbedContent { width: 110; max-width: 100%; height: auto; min-height: 34; }
     TabbedContent #clone-tab, TabbedContent #vault-tab { padding: 1 1; }
-    #main-clone { width: 100%; height: auto; border: heavy $primary; padding: 1 2; }
-    #main-vault { width: 100%; height: auto; border: heavy $accent; padding: 1 2; }
-    #fields-clone Input, #fields-vault Input { margin-bottom: 1; }
+    #main-clone { width: 100%; height: auto; border: heavy $primary; padding: 1 3; }
+    #main-vault { width: 100%; height: auto; border: heavy $accent; padding: 1 3; }
+    #title-clone, #title-vault { margin-bottom: 1; }
+    #fields-clone, #fields-vault { height: auto; }
+    #fields-clone Label, #fields-vault Label { margin-top: 1; color: $text-muted; }
+    #fields-clone Input, #fields-vault Input { margin-top: 0; margin-bottom: 1; height: 3; }
+    #fields-clone Select, #fields-vault Select { margin-bottom: 1; }
+    #link-row { height: 3; margin-bottom: 1; }
+    #link-row Input { width: 1fr; margin-bottom: 0; margin-right: 1; }
+    #link-row Button { width: auto; min-width: 18; }
     #log-clone, #log-vault { height: 10; min-height: 6; border: round $boost; margin-top: 1; }
     #hint-clone, #hint-vault { margin-top: 1; color: $text-muted; }
     #actions-clone, #actions-vault { margin-top: 1; height: auto; }
+    #actions-clone Button, #actions-vault Button { margin-right: 1; }
     """
 
     BINDINGS = [("q", "quit", "Quit")]
