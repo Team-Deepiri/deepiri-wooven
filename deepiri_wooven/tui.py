@@ -22,7 +22,14 @@ from textual.widgets import (
 )
 
 from deepiri_wooven import cred_manager as cm
-from deepiri_wooven.credentials import manager_summary, setup_for_transport
+from deepiri_wooven.clone_parser import parse_clone_arg
+from deepiri_wooven.credentials import (
+    has_https_credentials,
+    manager_summary,
+    open_pat_creation_page,
+    setup_for_transport,
+)
+from deepiri_wooven.git_wrapper import _real_git
 from deepiri_wooven.ssh_config import apply_identity_block
 from deepiri_wooven.transport import clone_url, detect_transport
 
@@ -37,14 +44,22 @@ def _normalize_target(raw: str) -> str:
 class WoovenApp(App[None]):
     CSS = """
     Screen { align: center middle; }
-    TabbedContent { width: 92; max-width: 100%; height: auto; min-height: 28; }
+    TabbedContent { width: 110; max-width: 100%; height: auto; min-height: 34; }
     TabbedContent #clone-tab, TabbedContent #vault-tab { padding: 1 1; }
-    #main-clone { width: 100%; height: auto; border: heavy $primary; padding: 1 2; }
-    #main-vault { width: 100%; height: auto; border: heavy $accent; padding: 1 2; }
-    #fields-clone Input, #fields-vault Input { margin-bottom: 1; }
+    #main-clone { width: 100%; height: auto; border: heavy $primary; padding: 1 3; }
+    #main-vault { width: 100%; height: auto; border: heavy $accent; padding: 1 3; }
+    #title-clone, #title-vault { margin-bottom: 1; }
+    #fields-clone, #fields-vault { height: auto; }
+    #fields-clone Label, #fields-vault Label { margin-top: 1; color: $text-muted; }
+    #fields-clone Input, #fields-vault Input { margin-top: 0; margin-bottom: 1; height: 3; }
+    #fields-clone Select, #fields-vault Select { margin-bottom: 1; }
+    #link-row { height: 3; margin-bottom: 1; }
+    #link-row Input { width: 1fr; margin-bottom: 0; margin-right: 1; }
+    #link-row Button { width: auto; min-width: 18; }
     #log-clone, #log-vault { height: 10; min-height: 6; border: round $boost; margin-top: 1; }
     #hint-clone, #hint-vault { margin-top: 1; color: $text-muted; }
     #actions-clone, #actions-vault { margin-top: 1; height: auto; }
+    #actions-clone Button, #actions-vault Button { margin-right: 1; }
     """
 
     BINDINGS = [("q", "quit", "Quit")]
@@ -56,6 +71,13 @@ class WoovenApp(App[None]):
                 with Container(id="main-clone"):
                     yield Static("[b]Clone[/b] — owner, repo, directory", id="title-clone")
                     with Vertical(id="fields-clone"):
+                        yield Label("GitHub link (SSH or HTTPS) — paste and Fill, then Clone")
+                        with Horizontal(id="link-row"):
+                            yield Input(
+                                placeholder="git@github.com:owner/repo.git or https://github.com/owner/repo",
+                                id="link",
+                            )
+                            yield Button("Fill from link", id="link_btn")
                         yield Label("Forge host")
                         yield Input(placeholder="github.com", id="host", value="github.com")
                         yield Label("Transport")
@@ -147,6 +169,37 @@ class WoovenApp(App[None]):
             return pref
         return detect_transport(host)
 
+    def _apply_link(self, raw: str, log: RichLog) -> bool:
+        """Parse a pasted link and fill host/owner/repo/transport. Returns success."""
+        target = parse_clone_arg(raw)
+        if target is None:
+            log.write(f"[red]Could not parse[/] {raw!r} as a git clone source.")
+            self.bell()
+            return False
+        self.query_one("#host", Input).value = target.host
+        self.query_one("#owner", Input).value = target.owner
+        self.query_one("#repo", Input).value = target.repo
+        sel = self.query_one("#transport", Select)
+        if target.transport in ("ssh", "https"):
+            sel.value = target.transport
+        else:
+            sel.value = "auto"
+        log.write(
+            f"[green]Parsed[/] {target.host}/{target.owner}/{target.repo} "
+            f"[dim](transport: {target.transport or 'auto'})[/]"
+        )
+        return True
+
+    @on(Button.Pressed, "#link_btn")
+    def fill_from_link(self) -> None:
+        log = self.query_one("#log-clone", RichLog)
+        raw = self.query_one("#link", Input).value.strip()
+        if not raw:
+            log.write("[red]Paste a GitHub link first.[/]")
+            self.bell()
+            return
+        self._apply_link(raw, log)
+
     @on(Button.Pressed, "#detect_btn")
     def detect_now(self) -> None:
         host = self._host_clone()
@@ -171,19 +224,35 @@ class WoovenApp(App[None]):
     @on(Button.Pressed, "#clone_btn")
     def run_clone(self) -> None:
         log = self.query_one("#log-clone", RichLog)
-        host = self._host_clone()
         owner = self.query_one("#owner", Input).value.strip()
         repo = self.query_one("#repo", Input).value.strip()
+        link = self.query_one("#link", Input).value.strip()
+
+        if (not owner or not repo) and link:
+            if not self._apply_link(link, log):
+                return
+            owner = self.query_one("#owner", Input).value.strip()
+            repo = self.query_one("#repo", Input).value.strip()
+
+        host = self._host_clone()
         target = _normalize_target(self.query_one("#target", Input).value)
 
         if not owner or not repo:
-            log.write("[red]Owner and repository name are required.[/]")
+            log.write("[red]Owner and repository name are required (paste a link, or fill Owner/Repository).[/]")
             self.bell()
             return
 
         transport = self._resolved_transport(host)
         url = clone_url(host, owner, repo, transport)
         log.write(f"[green]Using[/] {transport.upper()} [dim]{url}[/]")
+
+        if transport == "https" and not has_https_credentials(host):
+            pat_url = open_pat_creation_page(host)
+            log.write(
+                f"[yellow]No PAT/gh auth found for {host}.[/] "
+                f"Opened token creation page in your browser: [dim]{pat_url}[/]"
+            )
+            log.write("[dim]Paste the token into the Vault tab's PAT field and Store PAT, then Clone again.[/]")
 
         if target == ".":
             try:
@@ -197,10 +266,24 @@ class WoovenApp(App[None]):
             except OSError as e:
                 log.write(f"[red]Cannot read current directory: {e}[/]")
                 return
+        else:
+            target_path = Path(target)
+            if target_path.name != repo:
+                # Target directory is where the repo should live, not the repo root
+                # itself — clone into <target>/<repo>, like most people expect.
+                target = str(target_path / repo)
+                log.write(f"[dim]Cloning repo into {target}[/]")
+
+        try:
+            real_git = _real_git()
+        except SystemExit as e:
+            log.write(f"[red]{e}[/]")
+            self.bell()
+            return
 
         try:
             proc = subprocess.run(
-                ["git", "clone", url, target],
+                [real_git, "clone", url, target],
                 capture_output=True,
                 text=True,
                 timeout=600,

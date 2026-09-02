@@ -34,11 +34,13 @@ def _https_available(host: str) -> bool:
 
 def _prompt_transport(host: str, ssh_ok: bool, https_ok: bool) -> str:
     if sys.stdin.isatty() and sys.stdout.isatty():
+        has_creds = cm_has_https_credentials(host)
         print(f"\nDeepiri Wooven: choose transport for {host}", file=sys.stderr)
         if ssh_ok:
             print("  [1] SSH", file=sys.stderr)
         if https_ok:
-            print("  [2] HTTPS", file=sys.stderr)
+            label = "HTTPS" if has_creds else "HTTPS (no PAT/gh auth yet — will set one up)"
+            print(f"  [2] {label}", file=sys.stderr)
         while True:
             try:
                 choice = input("Enter 1 or 2: ").strip()
@@ -48,6 +50,17 @@ def _prompt_transport(host: str, ssh_ok: bool, https_ok: bool) -> str:
             if choice == "1" and ssh_ok:
                 return "ssh"
             if choice == "2" and https_ok:
+                if not has_creds:
+                    from deepiri_wooven.credentials import ensure_https_pat_interactive
+
+                    if not ensure_https_pat_interactive(host):
+                        if ssh_ok:
+                            print(
+                                "No PAT set up. Falling back to SSH.",
+                                file=sys.stderr,
+                            )
+                            return "ssh"
+                        print("No PAT set up; continuing with HTTPS anyway.", file=sys.stderr)
                 return "https"
             print("Invalid choice.", file=sys.stderr)
     if ssh_ok and not https_ok:
@@ -55,6 +68,12 @@ def _prompt_transport(host: str, ssh_ok: bool, https_ok: bool) -> str:
     if https_ok and not ssh_ok:
         return "https"
     return detect_transport(host)
+
+
+def cm_has_https_credentials(host: str) -> bool:
+    from deepiri_wooven.credentials import has_https_credentials
+
+    return has_https_credentials(host)
 
 
 def resolve_transport(
@@ -97,6 +116,10 @@ def resolve_transport(
         record_transport(host, "ssh")
         return "ssh"
     if https_ok:
+        if interactive and not cm_has_https_credentials(host) and sys.stdin.isatty() and sys.stdout.isatty():
+            from deepiri_wooven.credentials import ensure_https_pat_interactive
+
+            ensure_https_pat_interactive(host)
         record_transport(host, "https")
         return "https"
 
