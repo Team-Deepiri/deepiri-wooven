@@ -268,11 +268,11 @@ class WoovenApp(App[None]):
                 return
         else:
             target_path = Path(target)
-            if target_path.is_dir():
-                # An existing directory is where to put the repo, not the repo root
+            if target_path.name != repo:
+                # Target directory is where the repo should live, not the repo root
                 # itself — clone into <target>/<repo>, like most people expect.
                 target = str(target_path / repo)
-                log.write(f"[dim]Target exists as a directory — cloning into {target}[/]")
+                log.write(f"[dim]Cloning repo into {target}[/]")
 
         try:
             real_git = _real_git()
