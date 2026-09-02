@@ -265,6 +265,13 @@ class WoovenApp(App[None]):
             except OSError as e:
                 log.write(f"[red]Cannot read current directory: {e}[/]")
                 return
+        else:
+            target_path = Path(target)
+            if target_path.is_dir():
+                # An existing directory is where to put the repo, not the repo root
+                # itself — clone into <target>/<repo>, like most people expect.
+                target = str(target_path / repo)
+                log.write(f"[dim]Target exists as a directory — cloning into {target}[/]")
 
         try:
             proc = subprocess.run(
