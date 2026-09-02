@@ -29,6 +29,7 @@ from deepiri_wooven.credentials import (
     open_pat_creation_page,
     setup_for_transport,
 )
+from deepiri_wooven.git_wrapper import _real_git
 from deepiri_wooven.ssh_config import apply_identity_block
 from deepiri_wooven.transport import clone_url, detect_transport
 
@@ -274,8 +275,15 @@ class WoovenApp(App[None]):
                 log.write(f"[dim]Target exists as a directory — cloning into {target}[/]")
 
         try:
+            real_git = _real_git()
+        except SystemExit as e:
+            log.write(f"[red]{e}[/]")
+            self.bell()
+            return
+
+        try:
             proc = subprocess.run(
-                ["git", "clone", url, target],
+                [real_git, "clone", url, target],
                 capture_output=True,
                 text=True,
                 timeout=600,
