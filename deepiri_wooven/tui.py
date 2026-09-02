@@ -22,7 +22,13 @@ from textual.widgets import (
 )
 
 from deepiri_wooven import cred_manager as cm
-from deepiri_wooven.credentials import manager_summary, setup_for_transport
+from deepiri_wooven.clone_parser import parse_clone_arg
+from deepiri_wooven.credentials import (
+    has_https_credentials,
+    manager_summary,
+    open_pat_creation_page,
+    setup_for_transport,
+)
 from deepiri_wooven.ssh_config import apply_identity_block
 from deepiri_wooven.transport import clone_url, detect_transport
 
@@ -56,6 +62,13 @@ class WoovenApp(App[None]):
                 with Container(id="main-clone"):
                     yield Static("[b]Clone[/b] — owner, repo, directory", id="title-clone")
                     with Vertical(id="fields-clone"):
+                        yield Label("GitHub link (SSH or HTTPS) — paste and Fill, then Clone")
+                        with Horizontal(id="link-row"):
+                            yield Input(
+                                placeholder="git@github.com:owner/repo.git or https://github.com/owner/repo",
+                                id="link",
+                            )
+                            yield Button("Fill from link", id="link_btn")
                         yield Label("Forge host")
                         yield Input(placeholder="github.com", id="host", value="github.com")
                         yield Label("Transport")
@@ -147,6 +160,32 @@ class WoovenApp(App[None]):
             return pref
         return detect_transport(host)
 
+    @on(Button.Pressed, "#link_btn")
+    def fill_from_link(self) -> None:
+        log = self.query_one("#log-clone", RichLog)
+        raw = self.query_one("#link", Input).value.strip()
+        if not raw:
+            log.write("[red]Paste a GitHub link first.[/]")
+            self.bell()
+            return
+        target = parse_clone_arg(raw)
+        if target is None:
+            log.write(f"[red]Could not parse[/] {raw!r} as a git clone source.")
+            self.bell()
+            return
+        self.query_one("#host", Input).value = target.host
+        self.query_one("#owner", Input).value = target.owner
+        self.query_one("#repo", Input).value = target.repo
+        sel = self.query_one("#transport", Select)
+        if target.transport in ("ssh", "https"):
+            sel.value = target.transport
+        else:
+            sel.value = "auto"
+        log.write(
+            f"[green]Parsed[/] {target.host}/{target.owner}/{target.repo} "
+            f"[dim](transport: {target.transport or 'auto'})[/]"
+        )
+
     @on(Button.Pressed, "#detect_btn")
     def detect_now(self) -> None:
         host = self._host_clone()
@@ -184,6 +223,14 @@ class WoovenApp(App[None]):
         transport = self._resolved_transport(host)
         url = clone_url(host, owner, repo, transport)
         log.write(f"[green]Using[/] {transport.upper()} [dim]{url}[/]")
+
+        if transport == "https" and not has_https_credentials(host):
+            pat_url = open_pat_creation_page(host)
+            log.write(
+                f"[yellow]No PAT/gh auth found for {host}.[/] "
+                f"Opened token creation page in your browser: [dim]{pat_url}[/]"
+            )
+            log.write("[dim]Paste the token into the Vault tab's PAT field and Store PAT, then Clone again.[/]")
 
         if target == ".":
             try:

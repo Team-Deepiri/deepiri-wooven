@@ -5,9 +5,64 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+import webbrowser
 from pathlib import Path
 
 from deepiri_wooven import cred_manager as cm
+
+PAT_CREATE_URL = (
+    "https://{host}/settings/tokens/new"
+    "?description=deepiri-wooven&scopes=repo"
+)
+
+
+def has_https_credentials(host: str) -> bool:
+    """True if HTTPS cloning already has a usable credential for host."""
+    host = host.strip().lower()
+    if cm.get_pat(host):
+        return True
+    if shutil.which("gh"):
+        r = _run(["gh", "auth", "status", "--hostname", host], timeout=15)
+        if r.returncode == 0:
+            return True
+    return False
+
+
+def open_pat_creation_page(host: str = "github.com") -> str:
+    """Open the browser to the token-creation page for host; return the URL used."""
+    url = PAT_CREATE_URL.format(host=host.strip().lower())
+    try:
+        webbrowser.open(url)
+    except Exception:
+        pass
+    return url
+
+
+def ensure_https_pat_interactive(host: str = "github.com", *, input_fn=input) -> bool:
+    """
+    Interactively set up a PAT for HTTPS if one isn't already usable.
+
+    Opens the token-creation page in the user's default browser, then prompts
+    for the token and stores it in the OS keyring via cred_manager. Returns
+    True if HTTPS credentials are now usable (existing or newly stored).
+    """
+    host = host.strip().lower()
+    if has_https_credentials(host):
+        return True
+    print(f"\nNo HTTPS credentials found for {host}.", file=sys.stderr)
+    print(f"Opening {host} in your browser to create a personal access token…", file=sys.stderr)
+    url = open_pat_creation_page(host)
+    print(f"(If it didn't open: {url})", file=sys.stderr)
+    try:
+        token = input_fn("Paste the token here (or leave blank to skip): ").strip()
+    except (EOFError, KeyboardInterrupt):
+        print(file=sys.stderr)
+        return False
+    if not token:
+        return False
+    cm.store_pat(host, token)
+    print(f"Stored PAT for {host} in the OS keyring.", file=sys.stderr)
+    return True
 
 
 def _run(cmd: list[str], timeout: float = 120.0) -> subprocess.CompletedProcess:
